@@ -121,12 +121,12 @@ export function getLocalChatFallback(message: string, drugName?: string, current
   const info = currentInfo || (drugName ? findLocalDrugProfile(drugName) : null) || findProfileFromText(message);
 
   if (info) {
-    return `Here is a concise pharmacology overview for ${info.genericName}: it is classified as ${info.drugClass}. I can also provide a deeper explanation of its mechanism of action, adverse effects, monitoring requirements, dosing considerations, or important drug interactions.`;
+    return `Here is a concise pharmacology overview for ${info.genericName}: it is classified as ${info.drugClass}. I can provide a more detailed explanation of its mechanism of action, adverse effects, monitoring requirements, dosing considerations, or important drug interactions.`;
   }
 
   if (lower.includes("side effect") || lower.includes("adverse")) {
-    return "I’m using the offline pharmacology database. Ask about a specific drug such as Metformin, Lisinopril, or Warfarin for a structured safety overview.";
+    return "I can provide a structured safety overview for a specific drug such as Warfarin, Metformin, or Lisinopril.";
   }
 
-  return "I’m using the built-in offline pharmacology database for now. Try a known drug name like Metformin or Lisinopril to get a study-friendly profile.";
+  return "I can help with clinical pharmacology questions about specific drugs such as Warfarin, Metformin, or Lisinopril.";
 }
