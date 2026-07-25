@@ -2,6 +2,16 @@
 
 An elegant, robust, AI-powered clinical pharmacy assistant engineered for pharmacy students, clinical educators, and healthcare professionals. PharmAI simplifies complex pharmacology into high-yield, structured reference sheets, side-by-side drug comparisons, and interactive, context-aware student consultation guides.
 
+## 📷 Screenshots
+
+![Landing Page](screenshots/screenshot-1.png)
+
+![Profile Comparison](screenshots/screenshot-2.png)
+
+![Pharmacist Chat](screenshots/screenshot-3.png)
+
+> Place your screenshot images in the `screenshots/` folder with the matching file names above.
+
 ---
 
 ## 🌟 Key Capabilities
