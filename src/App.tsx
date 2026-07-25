@@ -24,6 +24,7 @@ import DrugReport from "./components/DrugReport";
 import ComparePanel from "./components/ComparePanel";
 import DrugChat from "./components/DrugChat";
 import LandingPage from "./components/LandingPage";
+import { parseApiResponse } from "./utils/http";
 
 export default function App() {
   const [viewMode, setViewMode] = useState<"landing" | "app">("landing");
@@ -56,7 +57,7 @@ export default function App() {
   // Fetch baseline suggestions on mount
   useEffect(() => {
     fetch("/api/suggested-drugs")
-      .then((res) => res.json())
+      .then((res) => parseApiResponse<SuggestedDrug[]>(res, "The suggestion service returned an invalid response."))
       .then((data) => setSuggestedDrugsDb(data))
       .catch((err) => console.error("Error loading suggestion db:", err));
 
@@ -113,11 +114,11 @@ export default function App() {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
+        const errData = await parseApiResponse<{ error?: string }>(response, "Failed to load clinical drug profile.");
         throw new Error(errData.error || "Failed to load clinical drug profile.");
       }
 
-      const data: DrugProfile = await response.json();
+      const data: DrugProfile = await parseApiResponse<DrugProfile>(response, "The server returned an invalid profile response.");
       setDrugProfile(data);
       if (data.isQuotaExhausted) {
         setIsQuotaExhausted(true);
@@ -169,11 +170,11 @@ export default function App() {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
+        const errData = await parseApiResponse<{ error?: string }>(response, "Failed to fetch compare drug profile.");
         throw new Error(errData.error || "Failed to fetch compare drug profile.");
       }
 
-      const data: DrugProfile = await response.json();
+      const data: DrugProfile = await parseApiResponse<DrugProfile>(response, "The server returned an invalid comparison profile response.");
       if (target === "A") {
         setDrugCompareA(data);
       } else {
