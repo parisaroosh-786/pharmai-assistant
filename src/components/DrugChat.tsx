@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Send, Sparkles, MessageSquare, Trash2, HelpCircle } from "lucide-react";
 import { ChatMessage, DrugProfile } from "../types";
 import { getApiUrl, parseApiResponse } from "../utils/http";
+import { getLocalChatFallback } from "../utils/drugData";
 
 interface DrugChatProps {
   activeDrugName: string | null;
@@ -55,34 +56,46 @@ export default function DrugChat({ activeDrugName, activeDrugProfile }: DrugChat
     setLoading(true);
 
     try {
-      const response = await fetch(getApiUrl("/api/drug-chat"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          drugName: activeDrugName,
-          currentInfo: activeDrugProfile,
-          message: textToSend.trim()
-        }),
-      });
+      try {
+        const response = await fetch(getApiUrl("/api/drug-chat"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            drugName: activeDrugName,
+            currentInfo: activeDrugProfile,
+            message: textToSend.trim()
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error("Failed to connect to pharmacist AI.");
-      }
+        if (!response.ok) {
+          throw new Error("Failed to connect to pharmacist AI.");
+        }
 
-      const data = await parseApiResponse<{ answer?: string; isQuotaExhausted?: boolean }>(response, "The chat service returned an invalid response.");
-      if (data.isQuotaExhausted) {
+        const data = await parseApiResponse<{ answer?: string; isQuotaExhausted?: boolean }>(response, "The chat service returned an invalid response.");
+        if (data.isQuotaExhausted) {
+          setIsQuotaExhausted(true);
+        } else {
+          setIsQuotaExhausted(false);
+        }
+        const botMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: "bot",
+          text: data.answer || "No response received.",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+
+        setMessages(prev => [...prev, botMsg]);
+      } catch {
         setIsQuotaExhausted(true);
-      } else {
-        setIsQuotaExhausted(false);
+        const fallback = getLocalChatFallback(textToSend.trim(), activeDrugName, activeDrugProfile);
+        const botMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: "bot",
+          text: fallback,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages(prev => [...prev, botMsg]);
       }
-      const botMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        sender: "bot",
-        text: data.answer || "No response received.",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-
-      setMessages(prev => [...prev, botMsg]);
     } catch (err: any) {
       console.error(err);
       const errorMsg: ChatMessage = {
