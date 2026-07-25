@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import { Send, Sparkles, MessageSquare, Trash2, HelpCircle } from "lucide-react";
 import { ChatMessage, DrugProfile } from "../types";
+import { parseApiResponse } from "../utils/http";
 
 interface DrugChatProps {
   activeDrugName: string | null;
@@ -68,7 +69,7 @@ export default function DrugChat({ activeDrugName, activeDrugProfile }: DrugChat
         throw new Error("Failed to connect to pharmacist AI.");
       }
 
-      const data = await response.json();
+      const data = await parseApiResponse<{ answer?: string; isQuotaExhausted?: boolean }>(response, "The chat service returned an invalid response.");
       if (data.isQuotaExhausted) {
         setIsQuotaExhausted(true);
       } else {
