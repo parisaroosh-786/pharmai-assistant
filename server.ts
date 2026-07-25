@@ -175,16 +175,14 @@ ${info.pharmacyStudentTip}
     }
 
     // Default response when a drug is active
-    return `Hello! I am your Clinical Pharmacist Study Companion. We are currently using our high-yield offline database to ensure uninterrupted access. 
-
-Here is a clinical overview of **${genName}** for your reference:
+    return `Here is a concise clinical pharmacology overview of **${genName}**:
 
 - **Drug Class**: ${info.drugClass}
 - **Mechanism of Action**: ${info.mechanismOfAction}
-- **Indications**: ${(info.indications || []).join(", ")}
+- **Typical Indications**: ${(info.indications || []).join(", ")}
 - **High-Yield Exam Tip**: ${info.pharmacyStudentTip}
 
-*Please ask a specific question about its mechanism, side effects, monitoring, interactions, or dosing to get custom detailed explanations from our clinical database.*`;
+Ask about its mechanism, adverse effects, monitoring, drug interactions, or dosing for a more detailed study-focused explanation.`;
   }
 
   // General fallback when no drug is active and we are rate limited
