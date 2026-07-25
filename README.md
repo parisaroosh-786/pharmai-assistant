@@ -1,6 +1,8 @@
 # PharmAI Assistant 💊
 
-An elegant, robust, AI-powered clinical pharmacy assistant engineered for pharmacy students, clinical educators, and healthcare professionals. PharmAI simplifies complex pharmacology into high-yield, structured reference sheets, side-by-side drug comparisons, and interactive, context-aware student consultation guides.
+PharmAI Assistant is a clinical pharmacy study companion designed for pharmacy students, educators, and healthcare professionals. It combines a structured drug-report experience with a pharmacist-style chat experience so users can quickly review pharmacology, compare therapies, and study key drug concepts in one place.
+
+🌍 Live demo: [https://pharmai-assistant.vercel.app/](https://pharmai-assistant.vercel.app/)
 
 ## 📷 Screenshots
 
@@ -10,74 +12,86 @@ An elegant, robust, AI-powered clinical pharmacy assistant engineered for pharma
 
 ![Pharmacist Chat](screenshots/screenshot-3.png)
 
-> Place your screenshot images in the `screenshots/` folder with the matching file names above.
+---
+
+## ✨ What the app does
+
+### 1. Structured drug reports
+Search a drug name to view a detailed, study-friendly profile with sections such as:
+- drug class and mechanism of action
+- indications and therapeutic use
+- common and serious adverse effects
+- dosing and administration notes
+- monitoring parameters
+- interactions and contraindications
+- patient counseling points
+- high-yield exam tips
+
+### 2. Side-by-side therapeutic comparison
+Compare two drugs directly to review class differences, safety concerns, monitoring needs, and clinical use cases.
+
+### 3. Pharmacist-style chat
+Ask questions like:
+- “What is the mechanism of action?”
+- “What are the side effects?”
+- “How is it dosed?”
+- “What interactions should I know?”
+
+The chat uses a built-in high-yield offline pharmacology database and can provide tailored responses for mechanism, adverse effects, dosing, monitoring, interactions, and counseling.
 
 ---
 
-## 🌟 Key Capabilities
+## 🛠️ Project structure
 
-### 1. Dynamic Clinical Drug Profiles
-Search for any generic or brand-name medication to instantly synthesize a **15-section structured reference card** detailing:
-*   **Pharmacology Core:** Classifications, exact Mechanism of Action (MOA), FDA indications, and off-label uses.
-*   **Administration & Safety:** Standard adult/pediatric dosages, essential renal/hepatic dosing adjustments, and clear contraindications.
-*   **Monitoring & Patient Care:** Severe/serious adverse effects, crucial monitoring parameters (e.g., eGFR, INR, LFTs), patient counseling guides, and storage configurations.
-*   **High-Yield Study Tips:** Curated clinical study guidelines and memory triggers tailored specifically for board examinations.
+```text
+server.ts                # Express server and API routes
+src/
+  App.tsx                 # Main app shell and state management
+  components/
+    LandingPage.tsx       # Landing and feature overview
+    DrugReport.tsx        # Drug profile report UI
+    ComparePanel.tsx      # Drug comparison view
+    DrugChat.tsx          # Pharmacist chat UI
+  utils/
+    drugData.ts           # Local fallback logic and pharmacy data helpers
+    http.ts               # API helper utilities
+```
 
-### 2. Side-by-Side Therapeutic Comparison
-Compare two different therapeutic profiles dynamically (e.g., *Warfarin vs. Apixaban* or *Metformin vs. Insulin Glargine*). The application matches corresponding parameters side-by-side, allowing students and educators to easily study therapeutic class differences, metabolic routes, excretion profiles, and distinct monitoring rules.
-
-### 3. Interactive Student Chat Guide
-A built-in interactive consultation simulator. Ask clinical questions about the selected drug, test mock counseling scenarios, or select pre-configured questions designed to drill key concepts. 
-
-###
-
----
-
-## 🎨 Visual Identity & UI Craftsmanship
-
-PharmAI avoids generic "AI Slop" templates by utilizing custom mathematical grids, professional editorial typography, and high-contrast clinical themes:
-*   **Elegant Editorial Palette:** Uses rich Slate neutrals (`#0F172A`), clinical deep-sea blues, and refreshing emerald tones, designed for high legibility under WCAG AA standards.
-*   **Mathematical Spacing & Radii:** Container padding strictly adheres to structural logic where outer margins exceed inner child gap distances. Rounded corners cap elegantly at `12px` to `16px` for clean, modern containers.
-*   **Dynamic Fluid Motion:** Features graceful entrance transitions, tab fades, and alert pulses powered by `motion/react` to deliver an organic desktop and mobile browsing experience.
-*   **No Nested Cards:** Flat, readable hierarchies that replace redundant cards-in-cards structures with beautiful dividers, custom tags, and high-yield badges.
+### API endpoints
+- POST /api/drug-info: returns a structured drug profile
+- POST /api/drug-chat: returns pharmacist-style chat responses
 
 ---
 
-## 🛠️ Built With
-
-*   **Frontend:** React 19, Vite 6, Tailwind CSS v4 (using the `@tailwindcss/vite` compiler).
-*   **Backend:** Node.js Express server acting as a secure API proxy to hide sensitive keys.
-*   **AI Engine:** Modern `@google/genai` TypeScript SDK utilizing server-side execution.
-*   **Motion & Effects:** `motion/react` for fluid layout and state transitions.
-*   **Icons:** Elegant, functional vector sets from `lucide-react`.
-
----
-
-## ⚙️ Quick Start
+## ⚙️ Local development
 
 ### Prerequisites
-Make sure you have Node.js (v18+) and npm installed.
+- Node.js 18+
+- npm
 
-### 1. Configure Secrets
-Create a `.env` file in the project root:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-*Note: If the API key is not supplied, the application will gracefully fall back to the extensive local high-yield reference dataset.*
-
-### 2. Install Dependencies
+### Setup
 ```bash
+git clone https://github.com/your-username/pharmai-assistant.git
+cd pharmai-assistant
 npm install
 ```
 
-### 3. Launch Development Server
+### Environment variables
+Create a .env file in the project root:
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+If no API key is provided, the app can still run using the built-in offline pharmacology database.
+
+### Run locally
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open http://localhost:3000
 
-### 4. Build and Start in Production
-To compile and bundle both the Vite frontend and Express server:
+### Build for production
 ```bash
 npm run build
 npm start
@@ -85,6 +99,11 @@ npm start
 
 ---
 
-## 🏥 Educational Disclaimer
-This assistant provides educational reference materials and clinical study guides only. It does not replace professional medical advice, clinical diagnosis, or direct medical decision-making. Always verify therapeutic recommendations with official drug monographs and peer-reviewed professional sources.
+## 🏥 Educational disclaimer
+This app is intended for educational and study use only. It does not replace professional medical advice, diagnosis, or formal clinical references.
+
+---
+
+Built with React, Vite, TypeScript, Express, and Tailwind-style UI components.
+
 
