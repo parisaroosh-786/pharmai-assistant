@@ -25,6 +25,7 @@ import ComparePanel from "./components/ComparePanel";
 import DrugChat from "./components/DrugChat";
 import LandingPage from "./components/LandingPage";
 import { getApiUrl, parseApiResponse } from "./utils/http";
+import { DEFAULT_SUGGESTED_DRUGS, findLocalDrugProfile } from "./utils/drugData";
 
 export default function App() {
   const [viewMode, setViewMode] = useState<"landing" | "app">("landing");
@@ -59,7 +60,9 @@ export default function App() {
     fetch(getApiUrl("/api/suggested-drugs"))
       .then((res) => parseApiResponse<SuggestedDrug[]>(res, "The suggestion service returned an invalid response."))
       .then((data) => setSuggestedDrugsDb(data))
-      .catch((err) => console.error("Error loading suggestion db:", err));
+      .catch(() => {
+        setSuggestedDrugsDb(DEFAULT_SUGGESTED_DRUGS);
+      });
 
     // Load search history from localstorage
     const saved = localStorage.getItem("clinical_pharmacist_search_history");
@@ -107,20 +110,30 @@ export default function App() {
     setViewMode("app");
 
     try {
-      const response = await fetch(getApiUrl("/api/drug-info"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ drugName: drugNameStr }),
-      });
+      let resolvedProfile: DrugProfile | null = null;
 
-      if (!response.ok) {
-        const errData = await parseApiResponse<{ error?: string }>(response, "Failed to load clinical drug profile.");
-        throw new Error(errData.error || "Failed to load clinical drug profile.");
+      try {
+        const response = await fetch(getApiUrl("/api/drug-info"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ drugName: drugNameStr }),
+        });
+
+        if (!response.ok) {
+          throw new Error("API unavailable");
+        }
+
+        resolvedProfile = await parseApiResponse<DrugProfile>(response, "The server returned an invalid profile response.");
+      } catch {
+        resolvedProfile = findLocalDrugProfile(drugNameStr);
       }
 
-      const data: DrugProfile = await parseApiResponse<DrugProfile>(response, "The server returned an invalid profile response.");
-      setDrugProfile(data);
-      if (data.isQuotaExhausted) {
+      if (!resolvedProfile) {
+        throw new Error("No profile data available.");
+      }
+
+      setDrugProfile(resolvedProfile);
+      if (resolvedProfile.isQuotaExhausted) {
         setIsQuotaExhausted(true);
       } else {
         setIsQuotaExhausted(false);
@@ -129,8 +142,8 @@ export default function App() {
       // Save to recent search history
       const newHistoryItem: SearchHistoryItem = {
         drugName: drugNameStr,
-        genericName: data.genericName,
-        drugClass: data.drugClass,
+        genericName: resolvedProfile.genericName,
+        drugClass: resolvedProfile.drugClass,
         timestamp: new Date().toLocaleDateString(),
       };
 
@@ -163,24 +176,34 @@ export default function App() {
     }
 
     try {
-      const response = await fetch(getApiUrl("/api/drug-info"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ drugName: drugNameStr }),
-      });
+      let resolvedCompareProfile: DrugProfile | null = null;
 
-      if (!response.ok) {
-        const errData = await parseApiResponse<{ error?: string }>(response, "Failed to fetch compare drug profile.");
-        throw new Error(errData.error || "Failed to fetch compare drug profile.");
+      try {
+        const response = await fetch(getApiUrl("/api/drug-info"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ drugName: drugNameStr }),
+        });
+
+        if (!response.ok) {
+          throw new Error("API unavailable");
+        }
+
+        resolvedCompareProfile = await parseApiResponse<DrugProfile>(response, "The server returned an invalid comparison profile response.");
+      } catch {
+        resolvedCompareProfile = findLocalDrugProfile(drugNameStr);
       }
 
-      const data: DrugProfile = await parseApiResponse<DrugProfile>(response, "The server returned an invalid comparison profile response.");
+      if (!resolvedCompareProfile) {
+        throw new Error("No comparison profile data available.");
+      }
+
       if (target === "A") {
-        setDrugCompareA(data);
+        setDrugCompareA(resolvedCompareProfile);
       } else {
-        setDrugCompareB(data);
+        setDrugCompareB(resolvedCompareProfile);
       }
-      if (data.isQuotaExhausted) {
+      if (resolvedCompareProfile.isQuotaExhausted) {
         setIsQuotaExhausted(true);
       }
     } catch (err) {
