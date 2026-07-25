@@ -1,0 +1,6 @@
+{
+  "name": "PharmAI Assistant",
+  "description": "An AI-powered clinical pharmacy assistant for pharmacy students and healthcare professionals. Provides high-yield drug profiles, side-by-side comparison matrices, and direct professional chat guides.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
