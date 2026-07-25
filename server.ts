@@ -182,7 +182,7 @@ ${info.pharmacyStudentTip}
 - **Typical Indications**: ${(info.indications || []).join(", ")}
 - **High-Yield Exam Tip**: ${info.pharmacyStudentTip}
 
-Ask about its mechanism, adverse effects, monitoring, drug interactions, or dosing for a more detailed study-focused explanation.`;
+I can also explain its adverse effects, monitoring requirements, dosing considerations, or key drug interactions in greater detail.`;
   }
 
   // General fallback when no drug is active and we are rate limited
