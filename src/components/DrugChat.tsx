@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import { Send, Sparkles, MessageSquare, Trash2, HelpCircle } from "lucide-react";
 import { ChatMessage, DrugProfile } from "../types";
-import { parseApiResponse } from "../utils/http";
+import { getApiUrl, parseApiResponse } from "../utils/http";
 
 interface DrugChatProps {
   activeDrugName: string | null;
@@ -55,7 +55,7 @@ export default function DrugChat({ activeDrugName, activeDrugProfile }: DrugChat
     setLoading(true);
 
     try {
-      const response = await fetch("/api/drug-chat", {
+      const response = await fetch(getApiUrl("/api/drug-chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
