@@ -121,7 +121,7 @@ export function getLocalChatFallback(message: string, drugName?: string, current
   const info = currentInfo || (drugName ? findLocalDrugProfile(drugName) : null) || findProfileFromText(message);
 
   if (info) {
-    return `I’m using the built-in study profile for ${info.genericName}. For a quick overview, the key class is ${info.drugClass}. If you want a deeper explanation, try asking about side effects, monitoring, dosing, or mechanism.`;
+    return `Here is a concise pharmacology overview for ${info.genericName}: it is classified as ${info.drugClass}. I can also provide a deeper explanation of its mechanism of action, adverse effects, monitoring requirements, dosing considerations, or important drug interactions.`;
   }
 
   if (lower.includes("side effect") || lower.includes("adverse")) {
