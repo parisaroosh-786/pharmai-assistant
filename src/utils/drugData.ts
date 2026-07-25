@@ -29,30 +29,29 @@ function findProfileFromText(text: string): DrugProfile | null {
     return null;
   }
 
+  const textTokens = new Set(normalizedText.split(/[^a-z0-9]+/).filter(Boolean));
   const rankedMatches = Object.values(DRUG_PROFILES)
     .map((profile) => {
       const names = [profile.genericName, ...profile.brandNames];
-      const score = names.reduce((bestScore, name) => {
+      let score = 0;
+
+      names.forEach((name) => {
         const normalizedName = normalize(name);
         if (!normalizedName) {
-          return bestScore;
+          return;
         }
+
+        const aliasTokens = new Set(normalizedName.split(/[^a-z0-9]+/).filter(Boolean));
+        const overlap = [...textTokens].filter((token) => aliasTokens.has(token)).length;
 
         if (normalizedText === normalizedName) {
-          return Math.max(bestScore, 100);
+          score = Math.max(score, 120);
+        } else if (normalizedText.includes(normalizedName) || normalizedName.includes(normalizedText)) {
+          score = Math.max(score, 90);
+        } else if (overlap > 0) {
+          score = Math.max(score, 60 + overlap * 10);
         }
-
-        if (normalizedText.includes(normalizedName) || normalizedName.includes(normalizedText)) {
-          return Math.max(bestScore, 70);
-        }
-
-        const words = normalizedText.split(/[^a-z0-9]+/).filter(Boolean);
-        if (words.includes(normalizedName)) {
-          return Math.max(bestScore, 60);
-        }
-
-        return bestScore;
-      }, 0);
+      });
 
       return { profile, score };
     })
@@ -119,6 +118,14 @@ export function findLocalDrugProfile(drugName: string): DrugProfile | null {
 export function getLocalChatFallback(message: string, drugName?: string, currentInfo?: DrugProfile | null): string {
   const lower = message.toLowerCase();
   const info = currentInfo || (drugName ? findLocalDrugProfile(drugName) : null) || findProfileFromText(message);
+
+  if (lower.includes("loop diuretic") && lower.includes("thiazide")) {
+    return "Loop diuretics and thiazides both increase sodium excretion, but they act at different nephron sites. Loop diuretics inhibit the Na+-K+-2Cl− cotransporter in the thick ascending limb and produce a stronger diuretic effect with more calcium loss. Thiazides inhibit the Na+/Cl− cotransporter in the distal convoluted tubule and are usually less potent, but they increase calcium reabsorption.";
+  }
+
+  if (lower.includes("ace inhibitor") && lower.includes("arb")) {
+    return "ACE inhibitors and ARBs both reduce angiotensin II signaling, but ACE inhibitors block angiotensin-converting enzyme, which also increases bradykinin and can cause cough. ARBs block the AT1 receptor directly, so they do not typically cause bradykinin-mediated cough.";
+  }
 
   if (info) {
     const genericName = info.genericName;
