@@ -24,7 +24,7 @@ import DrugReport from "./components/DrugReport";
 import ComparePanel from "./components/ComparePanel";
 import DrugChat from "./components/DrugChat";
 import LandingPage from "./components/LandingPage";
-import { parseApiResponse } from "./utils/http";
+import { getApiUrl, parseApiResponse } from "./utils/http";
 
 export default function App() {
   const [viewMode, setViewMode] = useState<"landing" | "app">("landing");
@@ -56,7 +56,7 @@ export default function App() {
 
   // Fetch baseline suggestions on mount
   useEffect(() => {
-    fetch("/api/suggested-drugs")
+    fetch(getApiUrl("/api/suggested-drugs"))
       .then((res) => parseApiResponse<SuggestedDrug[]>(res, "The suggestion service returned an invalid response."))
       .then((data) => setSuggestedDrugsDb(data))
       .catch((err) => console.error("Error loading suggestion db:", err));
@@ -107,7 +107,7 @@ export default function App() {
     setViewMode("app");
 
     try {
-      const response = await fetch("/api/drug-info", {
+      const response = await fetch(getApiUrl("/api/drug-info"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ drugName: drugNameStr }),
@@ -163,7 +163,7 @@ export default function App() {
     }
 
     try {
-      const response = await fetch("/api/drug-info", {
+      const response = await fetch(getApiUrl("/api/drug-info"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ drugName: drugNameStr }),
