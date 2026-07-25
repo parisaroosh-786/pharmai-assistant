@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ strict: false }));
 
 // Initialize Gemini API client
 const apiKey = process.env.GEMINI_API_KEY;
