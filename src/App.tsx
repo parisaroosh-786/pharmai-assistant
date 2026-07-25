@@ -150,7 +150,7 @@ export default function App() {
       // De-duplicate history
       const updatedHistory = [
         newHistoryItem,
-        ...searchHistory.filter((item) => item.genericName.toLowerCase() !== data.genericName.toLowerCase()),
+        ...searchHistory.filter((item) => item.genericName.toLowerCase() !== resolvedProfile.genericName.toLowerCase()),
       ].slice(0, 8); // keep latest 8 items
 
       setSearchHistory(updatedHistory);
