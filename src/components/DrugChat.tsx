@@ -77,6 +77,7 @@ export default function DrugChat({ activeDrugName, activeDrugProfile }: DrugChat
         } else {
           setIsQuotaExhausted(false);
         }
+
         const botMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
           sender: "bot",
@@ -91,7 +92,7 @@ export default function DrugChat({ activeDrugName, activeDrugProfile }: DrugChat
         const botMsg: ChatMessage = {
           id: (Date.now() + 1).toString(),
           sender: "bot",
-          text: fallback,
+          text: fallback || `For ${activeDrugName || "this topic"}, I can provide a structured explanation of the mechanism, adverse effects, monitoring, dosing, and key interactions.`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         };
         setMessages(prev => [...prev, botMsg]);
