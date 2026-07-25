@@ -86,92 +86,35 @@ function generateLocalChatFallback(message: string, drugName?: string, currentIn
     const genName = info.genericName;
     
     if (msgLower.includes("side effect") || msgLower.includes("adverse") || msgLower.includes("harm") || msgLower.includes("reaction") || msgLower.includes("toxic") || msgLower.includes("risk") || msgLower.includes("warning")) {
-      return `Based on the clinical profile of **${genName}**, here are the key safety considerations and adverse effects:
-
-**Common Side Effects:**
-${(info.commonSideEffects || []).map((e: string) => `- ${e}`).join("\n")}
-
-**Serious Adverse Effects / Boxed Warnings:**
-${(info.seriousAdverseEffects || []).map((e: string) => `- ${e}`).join("\n")}
-
-**Student Study Note:** Always warn patients about these symptoms and know how to monitor them for exams!
-
-*This response was served from our high-yield offline clinical database.*`;
+      return `For **${genName}**, the most important safety points are its common adverse effects and serious toxicity risks. In practice, you should be familiar with ${(info.commonSideEffects || []).slice(0, 3).join(", ")} and the key serious concerns such as ${(info.seriousAdverseEffects || []).slice(0, 2).join(" or ")}.`;
     }
 
     if (msgLower.includes("mechanism") || msgLower.includes("how does it work") || msgLower.includes("how it works") || msgLower.includes("moa") || msgLower.includes("action") || msgLower.includes("pharmacodynamic")) {
-      return `The pharmacology and cellular mechanism of action for **${genName}** is detailed below:
-
-**Mechanism of Action:**
-${info.mechanismOfAction}
-
-**Pharmacological Effects:**
-${info.pharmacologicalEffects}
-
-*This response was served from our high-yield offline clinical database.*`;
+      return `The mechanism of action for **${genName}** is: ${info.mechanismOfAction} In short, this drug works by producing a characteristic pharmacologic effect that explains both its therapeutic use and its adverse effect profile.`;
     }
 
     if (msgLower.includes("monitor") || msgLower.includes("lab") || msgLower.includes("test") || msgLower.includes("check") || msgLower.includes("blood") || msgLower.includes("scr") || msgLower.includes("egfr")) {
-      return `For patients on **${genName}**, the following monitoring parameters and laboratory values are critical to verify:
-
-**Monitoring Parameters:**
-${(info.monitoringParameters || []).map((e: string) => `- ${e}`).join("\n")}
-
-*This response was served from our high-yield offline clinical database.*`;
+      return `For **${genName}**, monitoring should focus on ${(info.monitoringParameters || []).slice(0, 3).join(", ")}. These checks help assess efficacy, toxicity, and whether therapy needs adjustment.`;
     }
 
     if (msgLower.includes("dose") || msgLower.includes("dosing") || msgLower.includes("dosage") || msgLower.includes("administer") || msgLower.includes("how to take") || msgLower.includes("route")) {
-      return `Here is the clinical guidance regarding the dosage, administration, and storage of **${genName}**:
-
-**Dosage and Administration:**
-${info.dosageAndAdministration}
-
-**Storage Information:**
-${info.storageInformation}
-
-*This response was served from our high-yield offline clinical database.*`;
+      return `The dosing and administration details for **${genName}** should be individualized based on indication, age, and organ function. A high-yield study point is that route, dose, and timing are essential to safe and effective therapy.`;
     }
 
     if (msgLower.includes("interaction") || msgLower.includes("interact") || msgLower.includes("food") || msgLower.includes("alcohol") || msgLower.includes("contraindication") || msgLower.includes("avoid")) {
-      return `Here are the major drug-drug interactions, drug-food interactions, and absolute contraindications for **${genName}**:
-
-**Drug-Drug Interactions:**
-${(info.drugDrugInteractions || []).map((e: string) => `- ${e}`).join("\n")}
-
-**Drug-Food / Alcohol Interactions:**
-${(info.drugFoodInteractions || []).map((e: string) => `- ${e}`).join("\n")}
-
-**Contraindications:**
-${(info.contraindications || []).map((e: string) => `- ${e}`).join("\n")}
-
-*This response was served from our high-yield offline clinical database.*`;
+      return `The main interactions for **${genName}** include ${(info.drugDrugInteractions || []).slice(0, 2).join(" and ")} as well as relevant food or alcohol considerations. These interactions are clinically significant because they can increase toxicity or reduce effectiveness.`;
     }
 
     if (msgLower.includes("counsel") || msgLower.includes("patient") || msgLower.includes("advice") || msgLower.includes("tell the patient")) {
-      return `When counseling a patient prescribed **${genName}**, you should cover these essential counseling points:
-
-**Patient Counseling Guidance:**
-${(info.patientCounseling || []).map((e: string) => `- ${e}`).join("\n")}
-
-*This response was served from our high-yield offline clinical database.*`;
+      return `For counseling a patient about **${genName}**, the priority points are ${(info.patientCounseling || []).slice(0, 2).join(" and ")}. These are practical, high-yield topics for both exams and real-world pharmacy practice.`;
     }
 
     if (msgLower.includes("renal") || msgLower.includes("kidney") || msgLower.includes("hepatic") || msgLower.includes("liver") || msgLower.includes("preg") || msgLower.includes("lactat") || msgLower.includes("elderly") || msgLower.includes("geriatric") || msgLower.includes("child") || msgLower.includes("pediatric") || msgLower.includes("age") || msgLower.includes("factor")) {
-      return `How **${genName}** administration and safety depend on patient factors:
-
-**Patient Factor Dependencies:**
-${info.patientFactorDependency}
-
-*This response was served from our high-yield offline clinical database.*`;
+      return `How **${genName}** is used and tolerated depends on patient-specific factors such as renal and hepatic function, age, and pregnancy status. This is an important clinical and exam consideration for safe prescribing.`;
     }
 
     if (msgLower.includes("tip") || msgLower.includes("exam") || msgLower.includes("student") || msgLower.includes("study") || msgLower.includes("focus")) {
-      return `Here is a high-yield clinical tip / exam focus point for **${genName}**:
-
-**Pharmacy Student Tip:**
-${info.pharmacyStudentTip}
-
-*This response was served from our high-yield offline clinical database.*`;
+      return `A high-yield study point for **${genName}** is that its class, mechanism, and key adverse effects are often tested together. Remembering those three areas will help you answer most related questions efficiently.`;
     }
 
     // Default response when a drug is active
