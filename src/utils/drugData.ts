@@ -121,11 +121,45 @@ export function getLocalChatFallback(message: string, drugName?: string, current
   const info = currentInfo || (drugName ? findLocalDrugProfile(drugName) : null) || findProfileFromText(message);
 
   if (info) {
-    return `Here is a concise pharmacology overview for ${info.genericName}: it is classified as ${info.drugClass}. I can provide a more detailed explanation of its mechanism of action, adverse effects, monitoring requirements, dosing considerations, or important drug interactions.`;
+    const genericName = info.genericName;
+    const drugClass = info.drugClass;
+    const mechanism = info.mechanismOfAction;
+    const sideEffects = info.commonSideEffects?.slice(0, 3).join(", ") || "common adverse effects";
+    const seriousEffects = info.seriousAdverseEffects?.slice(0, 2).join(" or ") || "serious toxicity";
+    const monitoring = info.monitoringParameters?.slice(0, 3).join(", ") || "relevant labs and clinical follow-up";
+    const interactions = info.drugDrugInteractions?.slice(0, 2).join("; ") || "major drug interactions";
+    const counseling = info.patientCounseling?.slice(0, 2).join("; ") || "patient counseling points";
+    const indications = info.indications?.slice(0, 2).join(" or ") || "its typical therapeutic use";
+
+    if (lower.includes("mechanism") || lower.includes("how it works") || lower.includes("moa") || lower.includes("action")) {
+      return `${genericName} is a ${drugClass}. Its mechanism of action is ${mechanism}. In practical terms, that means it works by producing a predictable pharmacologic effect that is central to its therapeutic use and its adverse effect profile.`;
+    }
+
+    if (lower.includes("side effect") || lower.includes("adverse") || lower.includes("reaction") || lower.includes("safe")) {
+      return `${genericName} commonly causes ${sideEffects}. The most important safety concerns to remember are ${seriousEffects}. For patient counseling, emphasize early recognition of these effects and when to seek urgent help.`;
+    }
+
+    if (lower.includes("dose") || lower.includes("dosing") || lower.includes("dosage") || lower.includes("administer") || lower.includes("take")) {
+      return `For ${genericName}, dosing should be individualized based on indication, age, renal function, and clinical context. A practical study point is that dosing and route of administration are critical parts of safe use and should always be verified against the clinical scenario.`;
+    }
+
+    if (lower.includes("interaction") || lower.includes("interact") || lower.includes("contraindication") || lower.includes("avoid")) {
+      return `${genericName} has clinically important interactions such as ${interactions}. These can alter efficacy, increase toxicity, or change the safety profile, so they are an important exam and counseling topic.`;
+    }
+
+    if (lower.includes("monitor") || lower.includes("lab") || lower.includes("blood") || lower.includes("renal") || lower.includes("hepatic")) {
+      return `Monitoring for ${genericName} should focus on ${monitoring}. Clinically, routine review of response, toxicity, and organ function is a key part of safe therapy.`;
+    }
+
+    if (lower.includes("counsel") || lower.includes("patient") || lower.includes("advise") || lower.includes("tell the patient")) {
+      return `When counseling a patient about ${genericName}, the key points are ${counseling}. These are high-yield topics for pharmacy practice and exam preparation.`;
+    }
+
+    return `${genericName} is commonly classified as ${drugClass} and is used for ${indications}. A strong study summary should include its mechanism, common adverse effects, monitoring needs, dosing considerations, and notable interactions.`;
   }
 
   if (lower.includes("side effect") || lower.includes("adverse")) {
-    return "I can provide a structured safety overview for a specific drug, including major adverse effects, monitoring considerations, and high-yield counseling points.";
+    return "I can provide a structured safety overview for a specific medication, including major adverse effects, monitoring considerations, and high-yield counseling points.";
   }
 
   return "I can help with clinical pharmacology questions about specific drugs, including mechanism of action, adverse effects, dosing, monitoring, and key interactions.";
