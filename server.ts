@@ -25,10 +25,49 @@ const ai = apiKey
     })
   : null;
 
+function findLocalProfileFromText(text: string): any | null {
+  const normalizedText = text.trim().toLowerCase();
+  if (!normalizedText) {
+    return null;
+  }
+
+  const rankedMatches = Object.values(DRUG_PROFILES)
+    .map((profile) => {
+      const names = [profile.genericName, ...profile.brandNames];
+      const score = names.reduce((bestScore, name) => {
+        const normalizedName = name.trim().toLowerCase();
+        if (!normalizedName) {
+          return bestScore;
+        }
+
+        if (normalizedText === normalizedName) {
+          return Math.max(bestScore, 100);
+        }
+
+        if (normalizedText.includes(normalizedName) || normalizedName.includes(normalizedText)) {
+          return Math.max(bestScore, 70);
+        }
+
+        const words = normalizedText.split(/[^a-z0-9]+/).filter(Boolean);
+        if (words.includes(normalizedName)) {
+          return Math.max(bestScore, 60);
+        }
+
+        return bestScore;
+      }, 0);
+
+      return { profile, score };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  return rankedMatches[0]?.profile || null;
+}
+
 function generateLocalChatFallback(message: string, drugName?: string, currentInfo?: any): string {
   const msgLower = message.toLowerCase();
   
-  // Try to find the drug profile if we have one or can match drugName
+  // Try to find the drug profile if we have one or can match drugName/message text
   let info = currentInfo;
   if (!info && drugName) {
     const normalizedKey = drugName.trim().toLowerCase();
@@ -38,6 +77,9 @@ function generateLocalChatFallback(message: string, drugName?: string, currentIn
              normalizedKey.includes(p.genericName.toLowerCase()) ||
              p.genericName.toLowerCase().includes(normalizedKey);
     });
+  }
+  if (!info) {
+    info = findLocalProfileFromText(message);
   }
 
   if (info) {
