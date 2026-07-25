@@ -125,8 +125,8 @@ export function getLocalChatFallback(message: string, drugName?: string, current
   }
 
   if (lower.includes("side effect") || lower.includes("adverse")) {
-    return "I can provide a structured safety overview for a specific drug such as Warfarin, Metformin, or Lisinopril.";
+    return "I can provide a structured safety overview for a specific drug, including major adverse effects, monitoring considerations, and high-yield counseling points.";
   }
 
-  return "I can help with clinical pharmacology questions about specific drugs such as Warfarin, Metformin, or Lisinopril.";
+  return "I can help with clinical pharmacology questions about specific drugs, including mechanism of action, adverse effects, dosing, monitoring, and key interactions.";
 }
