@@ -23,6 +23,54 @@ function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function findProfileFromText(text: string): DrugProfile | null {
+  const normalizedText = normalize(text);
+  if (!normalizedText) {
+    return null;
+  }
+
+  const rankedMatches = Object.values(DRUG_PROFILES)
+    .map((profile) => {
+      const names = [profile.genericName, ...profile.brandNames];
+      const score = names.reduce((bestScore, name) => {
+        const normalizedName = normalize(name);
+        if (!normalizedName) {
+          return bestScore;
+        }
+
+        if (normalizedText === normalizedName) {
+          return Math.max(bestScore, 100);
+        }
+
+        if (normalizedText.includes(normalizedName) || normalizedName.includes(normalizedText)) {
+          return Math.max(bestScore, 70);
+        }
+
+        const words = normalizedText.split(/[^a-z0-9]+/).filter(Boolean);
+        if (words.includes(normalizedName)) {
+          return Math.max(bestScore, 60);
+        }
+
+        return bestScore;
+      }, 0);
+
+      return { profile, score };
+    })
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (!rankedMatches.length) {
+    return null;
+  }
+
+  const match = rankedMatches[0];
+  return {
+    ...match.profile,
+    isFallback: true,
+    isQuotaExhausted: true,
+  };
+}
+
 export function findLocalDrugProfile(drugName: string): DrugProfile | null {
   const normalizedKey = normalize(drugName);
   const matchedProfile = Object.values(DRUG_PROFILES).find((profile) => {
@@ -37,6 +85,11 @@ export function findLocalDrugProfile(drugName: string): DrugProfile | null {
       isFallback: true,
       isQuotaExhausted: true,
     };
+  }
+
+  const inferredProfile = findProfileFromText(drugName);
+  if (inferredProfile) {
+    return inferredProfile;
   }
 
   const capitalized = drugName.trim().charAt(0).toUpperCase() + drugName.trim().slice(1);
@@ -65,7 +118,7 @@ export function findLocalDrugProfile(drugName: string): DrugProfile | null {
 
 export function getLocalChatFallback(message: string, drugName?: string, currentInfo?: DrugProfile | null): string {
   const lower = message.toLowerCase();
-  const info = currentInfo || (drugName ? findLocalDrugProfile(drugName) : null);
+  const info = currentInfo || (drugName ? findLocalDrugProfile(drugName) : null) || findProfileFromText(message);
 
   if (info) {
     return `I’m using the built-in study profile for ${info.genericName}. For a quick overview, the key class is ${info.drugClass}. If you want a deeper explanation, try asking about side effects, monitoring, dosing, or mechanism.`;
