@@ -25,7 +25,7 @@ import ComparePanel from "./components/ComparePanel";
 import DrugChat from "./components/DrugChat";
 import LandingPage from "./components/LandingPage";
 import { getApiUrl, parseApiResponse } from "./utils/http";
-import { DEFAULT_SUGGESTED_DRUGS, findLocalDrugProfile } from "./utils/drugData";
+import { DEFAULT_SUGGESTED_DRUGS, findLocalDrugProfile, fuzzyMatch } from "./utils/drugData";
 
 export default function App() {
   const [viewMode, setViewMode] = useState<"landing" | "app">("landing");
@@ -92,11 +92,14 @@ export default function App() {
       setSuggestions([]);
       return;
     }
-    const filtered = suggestedDrugsDb.filter(
-      (d) =>
+    const filtered = suggestedDrugsDb.filter((d) => {
+      return (
+        fuzzyMatch(d.name, searchQuery) ||
+        fuzzyMatch(d.class, searchQuery) ||
         d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         d.class.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+      );
+    });
     setSuggestions(filtered);
   }, [searchQuery, suggestedDrugsDb]);
 
