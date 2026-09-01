@@ -19,6 +19,45 @@ export const DEFAULT_SUGGESTED_DRUGS: SuggestedDrug[] = [
   { name: "Sertraline", class: "Selective Serotonin Reuptake Inhibitor (SSRI)" },
 ];
 
+// Simple Levenshtein distance for fuzzy matching (small, dependency-free)
+function levenshtein(a: string, b: string): number {
+  const al = a.length;
+  const bl = b.length;
+  if (al === 0) return bl;
+  if (bl === 0) return al;
+  const v0 = new Array(bl + 1).fill(0).map((_, i) => i);
+  const v1 = new Array(bl + 1).fill(0);
+  for (let i = 0; i < al; i++) {
+    v1[0] = i + 1;
+    for (let j = 0; j < bl; j++) {
+      const cost = a[i] === b[j] ? 0 : 1;
+      v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+    }
+    for (let k = 0; k <= bl; k++) v0[k] = v1[k];
+  }
+  return v1[bl];
+}
+
+function similarity(a: string, b: string): number {
+  if (!a || !b) return 0;
+  const dist = levenshtein(a, b);
+  const max = Math.max(a.length, b.length);
+  return max === 0 ? 1 : 1 - dist / max;
+}
+
+export function fuzzyMatch(text: string, query: string, threshold = 0.6): boolean {
+  const t = normalize(text);
+  const q = normalize(query);
+  if (t.includes(q) || q.includes(t)) return true;
+  // token overlap
+  const tTokens = new Set(t.split(/[^a-z0-9]+/).filter(Boolean));
+  const qTokens = new Set(q.split(/[^a-z0-9]+/).filter(Boolean));
+  const overlap = [...qTokens].filter((token) => tTokens.has(token)).length;
+  if (overlap > 0) return true;
+  // similarity on full strings
+  return similarity(t, q) >= threshold;
+}
+
 function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -75,7 +114,10 @@ export function findLocalDrugProfile(drugName: string): DrugProfile | null {
   const matchedProfile = Object.values(DRUG_PROFILES).find((profile) => {
     const genericName = normalize(profile.genericName);
     const brandNames = profile.brandNames.map((brand) => normalize(brand));
-    return genericName === normalizedKey || brandNames.includes(normalizedKey) || normalizedKey.includes(genericName) || genericName.includes(normalizedKey);
+    if (genericName === normalizedKey || brandNames.includes(normalizedKey)) return true;
+    // allow fuzzy match for brand or generic
+    if (fuzzyMatch(profile.genericName, drugName) || profile.brandNames.some((b) => fuzzyMatch(b, drugName))) return true;
+    return normalizedKey.includes(genericName) || genericName.includes(normalizedKey);
   });
 
   if (matchedProfile) {
