@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { DRUG_PROFILES } from "./drugProfiles";
 
@@ -12,18 +11,31 @@ const PORT = 3000;
 
 app.use(express.json({ strict: false }));
 
-// Initialize Gemini API client
+// Initialize Gemini API client dynamically when a key is present
 const apiKey = process.env.GEMINI_API_KEY;
-const ai = apiKey
-  ? new GoogleGenAI({
+let ai: any = null;
+let GenAIType: any = null;
+
+async function initGenAI() {
+  if (!apiKey) return;
+  try {
+    const genai = await import("@google/genai");
+    const { GoogleGenAI, Type } = genai;
+    ai = new GoogleGenAI({
       apiKey,
       httpOptions: {
         headers: {
           "User-Agent": "aistudio-build",
         },
       },
-    })
-  : null;
+    });
+    GenAIType = Type;
+    console.log("[GenAI] Gemini client initialized");
+  } catch (err) {
+    console.warn("[GenAI] Failed to load @google/genai; continuing in offline mode:", err);
+    ai = null;
+  }
+}
 
 function findLocalProfileFromText(text: string): any | null {
   const normalizedText = text.trim().toLowerCase();
@@ -196,27 +208,19 @@ function generateOfflineDrugProfile(drugName: string): any {
   };
 }
 
-// Mock list of popular drugs for autocomplete / suggestions
-const SUGGESTED_DRUGS = [
-  { name: "Metformin", class: "Biguanide Antidiabetic" },
-  { name: "Lisinopril", class: "ACE Inhibitor" },
-  { name: "Atorvastatin", class: "HMG-CoA Reductase Inhibitor" },
-  { name: "Amoxicillin", class: "Beta-Lactam Antibiotic" },
-  { name: "Albuterol", class: "Beta-2 Adrenergic Agonist" },
-  { name: "Gabapentin", class: "GABA Analog / Anticonvulsant" },
-  { name: "Amlodipine", class: "Dihydropyridine Calcium Channel Blocker" },
-  { name: "Omeprazole", class: "Proton Pump Inhibitor" },
-  { name: "Levothyroxine", class: "Thyroid Hormone Replacement" },
-  { name: "Warfarin", class: "Vitamin K Antagonist Anticoagulant" },
-  { name: "Apixaban", class: "Direct Factor Xa Inhibitor" },
-  { name: "Furosemide", class: "Loop Diuretic" },
-  { name: "Metoprolol", class: "Beta-1 Selective Adrenergic Blocker" },
-  { name: "Ibuprofen", class: "Nonsteroidal Anti-inflammatory Drug (NSAID)" },
-  { name: "Sertraline", class: "Selective Serotonin Reuptake Inhibitor (SSRI)" }
-];
-
+// Suggested drugs endpoint — return names & classes from DRUG_PROFILES so frontend can search broadly
 app.get("/api/suggested-drugs", (req, res) => {
-  res.json(SUGGESTED_DRUGS);
+  try {
+    const suggestions = Object.values(DRUG_PROFILES).map((p) => ({ name: p.genericName, class: p.drugClass }));
+    res.json(suggestions);
+  } catch (err) {
+    // Fallback to a small curated list if something goes wrong
+    res.json([
+      { name: "Metformin", class: "Biguanide Antidiabetic" },
+      { name: "Lisinopril", class: "ACE Inhibitor" },
+      { name: "Warfarin", class: "Vitamin K Antagonist" }
+    ]);
+  }
 });
 
 app.post("/api/drug-info", async (req, res) => {
@@ -265,61 +269,61 @@ Provide the profile in structured JSON format.`;
       systemInstruction: "You are a clinical pharmacist assistant, providing professional, detailed, and clear drug information for pharmacy students and healthcare workers.",
       responseMimeType: "application/json",
       responseSchema: {
-        type: Type.OBJECT,
+        type: GenAIType.OBJECT,
         properties: {
-          genericName: { type: Type.STRING, description: "Official generic name of the drug." },
+          genericName: { type: GenAIType.STRING, description: "Official generic name of the drug." },
           brandNames: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "Common brand names globally and in the US." 
           },
-          drugClass: { type: Type.STRING, description: "Pharmacological class and therapeutic class of the drug." },
-          mechanismOfAction: { type: Type.STRING, description: "Detailed, molecular and cellular mechanism of action suitable for high-yield pharmacy exams." },
-          pharmacologicalEffects: { type: Type.STRING, description: "Physiological and therapeutic effects of the drug on organ systems." },
+          drugClass: { type: GenAIType.STRING, description: "Pharmacological class and therapeutic class of the drug." },
+          mechanismOfAction: { type: GenAIType.STRING, description: "Detailed, molecular and cellular mechanism of action suitable for high-yield pharmacy exams." },
+          pharmacologicalEffects: { type: GenAIType.STRING, description: "Physiological and therapeutic effects of the drug on organ systems." },
           indications: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "FDA-approved and notable off-label clinical indications." 
           },
-          dosageAndAdministration: { type: Type.STRING, description: "Standard clinical dosing, routes, and administration guidelines." },
+          dosageAndAdministration: { type: GenAIType.STRING, description: "Standard clinical dosing, routes, and administration guidelines." },
           commonSideEffects: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "Common side effects (e.g., >1% or clinically frequent)." 
           },
           seriousAdverseEffects: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "Life-threatening adverse reactions, toxicities, or black box warnings." 
           },
           contraindications: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "Absolute and major relative contraindications." 
           },
           drugDrugInteractions: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "Major clinically significant drug-drug interactions (e.g., CYP450 pathways, synergisms)." 
           },
           drugFoodInteractions: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "Clinically significant food, herb, or beverage interactions." 
           },
           monitoringParameters: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "Required laboratory tests or vitals to monitor before/during therapy." 
           },
           patientCounseling: { 
-            type: Type.ARRAY, 
-            items: { type: Type.STRING },
+            type: GenAIType.ARRAY, 
+            items: { type: GenAIType.STRING },
             description: "Critical patient counseling instructions." 
           },
-          storageInformation: { type: Type.STRING, description: "Storage parameters, light sensitivity, and stability." },
-          patientFactorDependency: { type: Type.STRING, description: "How administration and safety depend on patient factors (renal/hepatic clearance, age, pregnancy/lactation, pharmacogenomics)." },
-          pharmacyStudentTip: { type: Type.STRING, description: "A high-yield pharmacology student clinical tip, exam focus point, or biochemical link." }
+          storageInformation: { type: GenAIType.STRING, description: "Storage parameters, light sensitivity, and stability." },
+          patientFactorDependency: { type: GenAIType.STRING, description: "How administration and safety depend on patient factors (renal/hepatic clearance, age, pregnancy/lactation, pharmacogenomics)." },
+          pharmacyStudentTip: { type: GenAIType.STRING, description: "A high-yield pharmacology student clinical tip, exam focus point, or biochemical link." }
         },
         required: [
           "genericName", "brandNames", "drugClass", "mechanismOfAction", "pharmacologicalEffects",
@@ -432,6 +436,7 @@ You are an expert Clinical Pharmacist. Provide a highly accurate, clinically det
 
 // Configure Vite or production static file serving
 async function startServer() {
+  await initGenAI();
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
